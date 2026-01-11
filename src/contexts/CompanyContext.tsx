@@ -4,7 +4,7 @@ import type { Company, CompanyContext as CompanyContextType, CompanyHierarchyNod
 import { apiRequest } from "@/lib/queryClient";
 
 interface CompanyProviderState {
-  activeCompanyId: string | null;
+  activeCompanyId: string; // Changed from string | null
   activeCompany: Company | null;
   userCompanies: Company[];
   permissions: string[];
@@ -42,14 +42,15 @@ interface CompanyProviderProps {
 
 export function CompanyProvider({ children }: CompanyProviderProps) {
   const queryClient = useQueryClient();
-  
+
   // Initialize from localStorage or defaults
   const [userId] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEY_USER) || DEFAULT_USER_ID;
   });
-  
-  const [activeCompanyId, setActiveCompanyId] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_KEY_COMPANY) || DEFAULT_COMPANY_ID;
+
+  const [activeCompanyId, setActiveCompanyId] = useState<string>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY_COMPANY);
+    return stored || DEFAULT_COMPANY_ID; // Always return comp-002 if no stored value
   });
 
   // Fetch all companies for the switcher
@@ -69,11 +70,11 @@ export function CompanyProvider({ children }: CompanyProviderProps) {
   });
 
   // Fetch current context - include activeCompanyId in query key so it refetches on switch
-  const { 
-    data: context, 
-    isLoading, 
+  const {
+    data: context,
+    isLoading,
     error,
-    refetch: refreshContext 
+    refetch: refreshContext
   } = useQuery<CompanyContextType>({
     queryKey: ["/api/session/context", activeCompanyId],
     enabled: !!userId && !!activeCompanyId,
@@ -97,16 +98,16 @@ export function CompanyProvider({ children }: CompanyProviderProps) {
     onSuccess: (data: CompanyContextType, companyId: string) => {
       setActiveCompanyId(companyId);
       localStorage.setItem(STORAGE_KEY_COMPANY, companyId);
-      
+
       // Update the cache directly with the new context data
       queryClient.setQueryData(["/api/session/context", companyId], data);
-      
+
       // Invalidate companies list and hierarchy
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       queryClient.invalidateQueries({ queryKey: ["/api/companies/hierarchy"] });
-      
+
       // Invalidate all company-scoped queries to force refetch with new context
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey;
           // Invalidate queries that have company-specific data (but not the new context we just set)
@@ -143,7 +144,7 @@ export function CompanyProvider({ children }: CompanyProviderProps) {
   }, [context?.accessibleCompanyIds]);
 
   // Get active company from context or find from list
-  const activeCompany = context?.activeCompany || 
+  const activeCompany = context?.activeCompany ||
     (activeCompanyId ? allCompanies.find(c => c.id === activeCompanyId) || null : null);
 
   const value: CompanyProviderValue = {

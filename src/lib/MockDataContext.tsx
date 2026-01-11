@@ -9,7 +9,10 @@ import {
   mockSalesOrderLines,
   mockInvoicesFull,
   mockAccountsFull,
+  mockLocations,
+  mockStockLevels,
 } from "./mockData";
+import { useCompany } from "@/contexts/CompanyContext";
 
 // ============ Types ============
 
@@ -331,7 +334,7 @@ const MockDataContext = createContext<MockDataContextType | null>(null);
 const loadInitialWarehouses = (): Warehouse[] =>
   mockWarehouses.map((w) => ({
     id: w.id,
-    companyId: "comp-002",
+    companyId: w.companyId, // Use actual companyId from mockData!
     code: w.code,
     name: w.name,
     address: w.address || "",
@@ -443,7 +446,7 @@ const loadInitialSalesOrderLines = (): SalesOrderLine[] =>
 const loadInitialInvoices = (): Invoice[] =>
   mockInvoicesFull.map((inv) => ({
     id: inv.id,
-    companyId: inv.companyId,
+    companyId: inv.companyId, // Use actual companyId from mockData!
     invoiceNumber: inv.invoiceNumber,
     invoiceType: inv.invoiceType,
     customerId: inv.customerId || "",
@@ -481,24 +484,10 @@ const loadInitialZones = (): Zone[] => [
 ];
 
 // Load initial locations with zone relationships
-const loadInitialLocations = (): Location[] => [
-  { id: "loc-001", companyId: "comp-002", warehouseId: "wh-001", zoneId: "zone-001", code: "RCV-01", name: "Receiving Dock 1", type: "floor", capacity: 1000, isActive: true },
-  { id: "loc-002", companyId: "comp-002", warehouseId: "wh-001", zoneId: "zone-002", code: "BULK-A-01", name: "Bulk Rack A Row 1", type: "rack", capacity: 500, isActive: true },
-  { id: "loc-003", companyId: "comp-002", warehouseId: "wh-001", zoneId: "zone-002", code: "BULK-A-02", name: "Bulk Rack A Row 2", type: "rack", capacity: 500, isActive: true },
-  { id: "loc-004", companyId: "comp-002", warehouseId: "wh-001", zoneId: "zone-003", code: "PICK-A-01", name: "Picking Bin A-01", type: "bin", capacity: 100, isActive: true },
-  { id: "loc-005", companyId: "comp-002", warehouseId: "wh-001", zoneId: "zone-003", code: "PICK-A-02", name: "Picking Bin A-02", type: "bin", capacity: 100, isActive: true },
-  { id: "loc-006", companyId: "comp-002", warehouseId: "wh-001", zoneId: "zone-004", code: "SHIP-01", name: "Shipping Dock 1", type: "floor", capacity: 800, isActive: true },
-  { id: "loc-007", companyId: "comp-002", warehouseId: "wh-002", zoneId: "zone-005", code: "GEN-01", name: "General Shelf 1", type: "shelf", capacity: 200, isActive: true },
-];
+const loadInitialLocations = (): Location[] => mockLocations as Location[];
 
 // Load initial stock levels - stock per product per location
-const loadInitialStockLevels = (): StockLevel[] => [
-  { id: "stk-001", companyId: "comp-002", warehouseId: "wh-001", locationId: "loc-002", productId: "prod-001", quantity: 150, minLevel: 20, maxLevel: 300, lastUpdated: new Date().toISOString() },
-  { id: "stk-002", companyId: "comp-002", warehouseId: "wh-001", locationId: "loc-003", productId: "prod-002", quantity: 75, minLevel: 10, maxLevel: 150, lastUpdated: new Date().toISOString() },
-  { id: "stk-003", companyId: "comp-002", warehouseId: "wh-001", locationId: "loc-004", productId: "prod-003", quantity: 200, minLevel: 50, maxLevel: 500, lastUpdated: new Date().toISOString() },
-  { id: "stk-004", companyId: "comp-002", warehouseId: "wh-001", locationId: "loc-005", productId: "prod-004", quantity: 30, minLevel: 5, maxLevel: 100, lastUpdated: new Date().toISOString() },
-  { id: "stk-005", companyId: "comp-002", warehouseId: "wh-002", locationId: "loc-007", productId: "prod-001", quantity: 50, minLevel: 10, maxLevel: 100, lastUpdated: new Date().toISOString() },
-];
+const loadInitialStockLevels = (): StockLevel[] => mockStockLevels as StockLevel[];
 
 // Load initial movements - empty for now, will be populated by transactions
 const loadInitialMovements = (): Movement[] => [];
@@ -506,6 +495,12 @@ const loadInitialMovements = (): Movement[] => [];
 // ============ Provider ============
 
 export function MockDataProvider({ children }: { children: ReactNode }) {
+  // Get active company ID for filtering
+  const { activeCompanyId } = useCompany();
+
+  // DEBUG: Verify useCompany is returning correct value
+  console.log("🔍 useCompany() returned activeCompanyId:", activeCompanyId);
+
   const [warehouses, setWarehouses] = useState<Warehouse[]>(loadInitialWarehouses);
   const [products, setProducts] = useState<Product[]>(loadInitialProducts);
   const [vendors, setVendors] = useState<Vendor[]>(loadInitialVendors);
@@ -518,13 +513,41 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>(loadInitialAccounts);
   const [zones, setZones] = useState<Zone[]>(loadInitialZones);
   const [locations, setLocations] = useState<Location[]>(loadInitialLocations);
-  const [stockLevels, setStockLevels] = useState<StockLevel[]>(loadInitialStockLevels);
-  const [movements, setMovements] = useState<Movement[]>(loadInitialMovements);
+  const [stockLevels, setStockLevels] = useState<StockLevel[]>(loadInitialStockLevels());
+  const [movements, setMovements] = useState<Movement[]>(loadInitialMovements());
+
+  // DEBUG: Log the activeCompanyId to see what's being used
+  console.log("🔍 MockDataContext - activeCompanyId:", activeCompanyId);
+  console.log("🔍 Total warehouses before filter:", warehouses.length);
+
+  // Filter all data by active company
+  const filteredWarehouses = activeCompanyId ? warehouses.filter(w => w.companyId === activeCompanyId) : warehouses;
+
+  // DEBUG: Log filtering results
+  console.log("🔍 Filtered warehouses:", filteredWarehouses.length, "for company:", activeCompanyId);
+  console.log("🔍 Warehouse IDs:", filteredWarehouses.map(w => `${w.id}(${w.companyId})`));
+
+  const filteredProducts = activeCompanyId ? products.filter(p => p.companyId === activeCompanyId) : products;
+  const filteredVendors = activeCompanyId ? vendors.filter(v => v.companyId === activeCompanyId) : vendors;
+  const filteredCustomers = activeCompanyId ? customers.filter(c => c.companyId === activeCompanyId) : customers;
+  const filteredPurchaseOrders = activeCompanyId ? purchaseOrders.filter(po => po.companyId === activeCompanyId) : purchaseOrders;
+  const filteredSalesOrders = activeCompanyId ? salesOrders.filter(so => so.companyId === activeCompanyId) : salesOrders;
+  const filteredInvoices = activeCompanyId ? invoices.filter(inv => inv.companyId === activeCompanyId) : invoices;
+  const filteredAccounts = activeCompanyId ? accounts.filter(acc => acc.companyId === activeCompanyId) : accounts;
+  const filteredZones = activeCompanyId ? zones.filter(z => z.companyId === activeCompanyId) : zones;
+  const filteredLocations = activeCompanyId ? locations.filter(l => l.companyId === activeCompanyId) : locations;
+  const filteredStockLevels = activeCompanyId ? stockLevels.filter(s => s.companyId === activeCompanyId) : stockLevels;
+  const filteredMovements = activeCompanyId ? movements.filter(m => m.companyId === activeCompanyId) : movements;
+
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
 
   // Warehouse CRUD
   const addWarehouse = (warehouse: Omit<Warehouse, "id">) => {
-    const newWarehouse = { ...warehouse, id: `wh-${Date.now()}` };
+    const newWarehouse = {
+      ...warehouse,
+      id: `wh-${Date.now()}`,
+      companyId: activeCompanyId || warehouse.companyId || "comp-002" // Auto-assign active company
+    };
     setWarehouses((prev) => [...prev, newWarehouse]);
     return newWarehouse;
   };
@@ -537,7 +560,11 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
 
   // Product CRUD
   const addProduct = (product: Omit<Product, "id">) => {
-    const newProduct = { ...product, id: `prod-${Date.now()}` };
+    const newProduct = {
+      ...product,
+      id: `prod-${Date.now()}`,
+      companyId: activeCompanyId || product.companyId || "comp-002" // Auto-assign active company
+    };
     setProducts((prev) => [...prev, newProduct]);
     return newProduct;
   };
@@ -559,7 +586,11 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
 
   // Vendor CRUD
   const addVendor = (vendor: Omit<Vendor, "id">) => {
-    const newVendor = { ...vendor, id: `vend-${Date.now()}` };
+    const newVendor = {
+      ...vendor,
+      id: `vend-${Date.now()}`,
+      companyId: activeCompanyId || vendor.companyId || "comp-002" // Auto-assign active company
+    };
     setVendors((prev) => [...prev, newVendor]);
     return newVendor;
   };
@@ -572,7 +603,11 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
 
   // Customer CRUD
   const addCustomer = (customer: Omit<Customer, "id">) => {
-    const newCustomer = { ...customer, id: `cust-${Date.now()}` };
+    const newCustomer = {
+      ...customer,
+      id: `cust-${Date.now()}`,
+      companyId: activeCompanyId || customer.companyId || "comp-002" // Auto-assign active company
+    };
     setCustomers((prev) => [...prev, newCustomer]);
     return newCustomer;
   };
@@ -585,7 +620,11 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
 
   // Purchase Order CRUD
   const addPurchaseOrder = (order: Omit<PurchaseOrder, "id">) => {
-    const newOrder = { ...order, id: `po-${Date.now()}` };
+    const newOrder = {
+      ...order,
+      id: `po-${Date.now()}`,
+      companyId: activeCompanyId || order.companyId || "comp-002" // Auto-assign active company
+    };
     setPurchaseOrders((prev) => [...prev, newOrder]);
     return newOrder;
   };
@@ -615,7 +654,11 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
 
   // Sales Order CRUD
   const addSalesOrder = (order: Omit<SalesOrder, "id">) => {
-    const newOrder = { ...order, id: `so-${Date.now()}` };
+    const newOrder = {
+      ...order,
+      id: `so-${Date.now()}`,
+      companyId: activeCompanyId || order.companyId || "comp-002" // Auto-assign active company
+    };
     setSalesOrders((prev) => [...prev, newOrder]);
     return newOrder;
   };
@@ -648,7 +691,11 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
 
   // Invoice CRUD
   const addInvoice = (invoice: Omit<Invoice, "id">) => {
-    const newInvoice = { ...invoice, id: `inv-${Date.now()}` };
+    const newInvoice = {
+      ...invoice,
+      id: `inv-${Date.now()}`,
+      companyId: activeCompanyId || invoice.companyId || "comp-002" // Auto-assign active company
+    };
     setInvoices((prev) => [...prev, newInvoice]);
     return newInvoice;
   };
@@ -724,7 +771,7 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
     referenceId: string
   ) => {
     console.log("adjustStock called:", { warehouseId, locationId, productId, quantityChange, referenceType, referenceId });
-    
+
     // Use functional update to access current stockLevels state
     setStockLevels((currentStockLevels) => {
       console.log("Current stock levels:", currentStockLevels.length, "items");
@@ -732,11 +779,11 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
         s => s.warehouseId === warehouseId && s.locationId === locationId && s.productId === productId
       );
       console.log("Existing stock found:", existingStock ? `${existingStock.id} with qty ${existingStock.quantity}` : "NO MATCH");
-      
+
       if (existingStock) {
         // Update existing stock level
-        return currentStockLevels.map(s => 
-          s.id === existingStock.id 
+        return currentStockLevels.map(s =>
+          s.id === existingStock.id
             ? { ...s, quantity: Math.max(0, s.quantity + quantityChange), lastUpdated: new Date().toISOString() }
             : s
         );
@@ -762,8 +809,8 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
     setProducts((currentProducts) => {
       const product = currentProducts.find(p => p.id === productId);
       if (product) {
-        return currentProducts.map(p => 
-          p.id === productId 
+        return currentProducts.map(p =>
+          p.id === productId
             ? { ...p, stockQuantity: Math.max(0, p.stockQuantity + quantityChange) }
             : p
         );
@@ -809,16 +856,16 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
   return (
     <MockDataContext.Provider
       value={{
-        warehouses,
-        products,
-        vendors,
-        customers,
-        purchaseOrders,
+        warehouses: filteredWarehouses,
+        products: filteredProducts,
+        vendors: filteredVendors,
+        customers: filteredCustomers,
+        purchaseOrders: filteredPurchaseOrders,
         purchaseOrderLines,
-        salesOrders,
+        salesOrders: filteredSalesOrders,
         salesOrderLines,
-        invoices,
-        accounts,
+        invoices: filteredInvoices,
+        accounts: filteredAccounts,
         addWarehouse,
         updateWarehouse,
         deleteWarehouse,
@@ -851,10 +898,10 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
         addAccount,
         updateAccount,
         deleteAccount,
-        zones,
-        locations,
-        stockLevels,
-        movements,
+        zones: filteredZones,
+        locations: filteredLocations,
+        stockLevels: filteredStockLevels,
+        movements: filteredMovements,
         addZone,
         updateZone,
         deleteZone,

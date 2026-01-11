@@ -74,8 +74,8 @@ function UserMenu() {
           {user?.fullName || user?.username || "User"}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={handleLogout} 
+        <DropdownMenuItem
+          onClick={handleLogout}
           disabled={isLoading}
           data-testid="button-logout"
         >
@@ -93,12 +93,12 @@ function ProtectedRoutes() {
       <Route path="/" component={Dashboard} />
       <Route path="/reports" component={Reports} />
       <Route path="/reports/consolidation" component={ConsolidationReports} />
-      
+
       <Route path="/sales/orders" component={SalesOrderList} />
       <Route path="/sales/customers" component={CustomerList} />
       <Route path="/sales/deliveries" component={DeliveryList} />
       <Route path="/sales/invoices" component={InvoiceList} />
-      
+
       <Route path="/warehouse/products" component={ProductList} />
       <Route path="/warehouse/warehouses" component={WarehouseList} />
       <Route path="/warehouse/locations" component={LocationList} />
@@ -106,17 +106,17 @@ function ProtectedRoutes() {
       <Route path="/warehouse/movements" component={MovementList} />
       <Route path="/warehouse/purchase-orders" component={PurchaseOrderList} />
       <Route path="/warehouse/vendors" component={VendorList} />
-      
+
       <Route path="/financials/journal" component={JournalEntries} />
       <Route path="/financials/accounts" component={ChartOfAccounts} />
       <Route path="/financials/receivables" component={AccountsReceivable} />
       <Route path="/financials/payables" component={AccountsPayable} />
-      
+
       <Route path="/hr/employees" component={EmployeeList} />
       <Route path="/hr/attendance" component={AttendanceList} />
       <Route path="/hr/leave" component={LeaveRequests} />
       <Route path="/hr/payroll" component={Payroll} />
-      
+
       <Route path="/system/companies" component={CompanyManagement} />
       <Route path="/system/users" component={UserRoleManagement} />
       <Route path="/system/intercompany" component={InterCompanyTransactions} />
@@ -126,7 +126,7 @@ function ProtectedRoutes() {
       <Route path="/settings">
         <Redirect to="/system/settings" />
       </Route>
-      
+
       <Route>
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
@@ -146,8 +146,8 @@ function AuthenticatedApp() { // main app
   };
 
   return (
-    <MockDataProvider>
-      <CompanyProvider> {/* x */}
+    <CompanyProvider>
+      <MockDataProvider>
         <SidebarProvider style={style as React.CSSProperties}>
           <div className="flex h-screen w-full">
             <AppSidebar />
@@ -163,13 +163,13 @@ function AuthenticatedApp() { // main app
                 </div>
               </header>
               <main className="flex-1 overflow-auto p-6">
-                <ProtectedRoutes /> 
+                <ProtectedRoutes />
               </main>
             </div>
           </div>
         </SidebarProvider>
-      </CompanyProvider>
-    </MockDataProvider>
+      </MockDataProvider>
+    </CompanyProvider>
   );
 }
 
