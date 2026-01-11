@@ -3,11 +3,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { 
-  Building2, 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Building2,
+  Plus,
+  Edit,
+  Trash2,
   ChevronRight,
   ChevronDown,
   Globe,
@@ -128,12 +128,12 @@ function HierarchyTree({ nodes, onEdit, onDelete, depth = 0 }: HierarchyTreeProp
   return (
     <div className="space-y-1">
       {nodes.map((node) => (
-        <HierarchyNode 
-          key={node.company.id} 
-          node={node} 
+        <HierarchyNode
+          key={node.company.id}
+          node={node}
           onEdit={onEdit}
           onDelete={onDelete}
-          depth={depth} 
+          depth={depth}
         />
       ))}
     </div>
@@ -154,7 +154,7 @@ function HierarchyNode({ node, onEdit, onDelete, depth }: HierarchyNodeProps) {
 
   return (
     <div>
-      <div 
+      <div
         className="flex items-center gap-2 p-2 rounded-md hover-elevate group"
         style={{ marginLeft: `${depth * 24}px` }}
         data-testid={`company-node-${node.company.id}`}
@@ -174,9 +174,9 @@ function HierarchyNode({ node, onEdit, onDelete, depth }: HierarchyNodeProps) {
         ) : (
           <span className="w-5" />
         )}
-        
+
         <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium truncate" data-testid={`text-company-${node.company.id}`}>
@@ -185,8 +185,8 @@ function HierarchyNode({ node, onEdit, onDelete, depth }: HierarchyNodeProps) {
             <Badge variant="outline" className="text-xs shrink-0">
               {node.company.code}
             </Badge>
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className={cn("text-xs shrink-0", companyTypeColors[node.company.companyType])}
             >
               {node.company.companyType}
@@ -226,11 +226,11 @@ function HierarchyNode({ node, onEdit, onDelete, depth }: HierarchyNodeProps) {
       </div>
 
       {hasChildren && isExpanded && (
-        <HierarchyTree 
-          nodes={node.children} 
+        <HierarchyTree
+          nodes={node.children}
           onEdit={onEdit}
           onDelete={onDelete}
-          depth={depth + 1} 
+          depth={depth + 1}
         />
       )}
     </div>
@@ -281,6 +281,7 @@ export function CompanyManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/companies/hierarchy"] });
       toast({ title: "Company created successfully" });
       setIsDialogOpen(false);
       form.reset();
@@ -298,6 +299,7 @@ export function CompanyManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/companies/hierarchy"] });
       toast({ title: "Company updated successfully" });
       setIsDialogOpen(false);
       setEditingCompany(null);
@@ -315,6 +317,7 @@ export function CompanyManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/companies/hierarchy"] });
       toast({ title: "Company deleted successfully" });
       setDeleteConfirm(null);
     },
@@ -404,8 +407,8 @@ export function CompanyManagement() {
             </CardHeader>
             <CardContent>
               {hierarchy.length > 0 ? (
-                <HierarchyTree 
-                  nodes={hierarchy} 
+                <HierarchyTree
+                  nodes={hierarchy}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                 />
@@ -463,7 +466,7 @@ export function CompanyManagement() {
                           <Badge variant="outline">{company.code}</Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge 
+                          <Badge
                             variant="secondary"
                             className={companyTypeColors[company.companyType]}
                           >
@@ -472,7 +475,7 @@ export function CompanyManagement() {
                         </TableCell>
                         <TableCell>{company.currency}</TableCell>
                         <TableCell>
-                          {company.city && company.country 
+                          {company.city && company.country
                             ? `${company.city}, ${company.country}`
                             : "-"}
                         </TableCell>
@@ -526,7 +529,7 @@ export function CompanyManagement() {
               {editingCompany ? "Edit Company" : "Add New Company"}
             </DialogTitle>
             <DialogDescription>
-              {editingCompany 
+              {editingCompany
                 ? "Update the company information below"
                 : "Fill in the details to create a new company"}
             </DialogDescription>
@@ -542,9 +545,9 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Company Name</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Acme Corporation" 
-                          {...field} 
+                        <Input
+                          placeholder="Acme Corporation"
+                          {...field}
                           data-testid="input-company-name"
                         />
                       </FormControl>
@@ -560,10 +563,10 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Company Code</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="ACME" 
+                        <Input
+                          placeholder="ACME"
                           maxLength={10}
-                          {...field} 
+                          {...field}
                           data-testid="input-company-code"
                         />
                       </FormControl>
@@ -584,14 +587,14 @@ export function CompanyManagement() {
                     return (
                       <FormItem>
                         <FormLabel>Company Type</FormLabel>
-                        <Select 
+                        <Select
                           onValueChange={(value) => {
                             field.onChange(value);
                             // Reset parent when type changes
                             if (value === COMPANY_TYPES.HOLDING) {
                               form.setValue("parentId", null);
                             }
-                          }} 
+                          }}
                           value={field.value}
                           data-testid="select-company-type"
                         >
@@ -636,7 +639,7 @@ export function CompanyManagement() {
                   render={({ field }) => {
                     const selectedType = form.watch("companyType");
                     const isHolding = selectedType === COMPANY_TYPES.HOLDING;
-                    
+
                     // Filter parent options based on company type
                     // Subsidiary can only have Holding parent (level 1)
                     // Branch can only have Subsidiary parent (level 2)
@@ -654,8 +657,8 @@ export function CompanyManagement() {
                     return (
                       <FormItem>
                         <FormLabel>Parent Company</FormLabel>
-                        <Select 
-                          onValueChange={(value) => field.onChange(value === "__none__" ? null : value)} 
+                        <Select
+                          onValueChange={(value) => field.onChange(value === "__none__" ? null : value)}
                           value={field.value || "__none__"}
                           disabled={isHolding}
                           data-testid="select-parent-company"
@@ -672,8 +675,8 @@ export function CompanyManagement() {
                               <>
                                 {filteredParents.length === 0 ? (
                                   <SelectItem value="__none__" disabled>
-                                    {selectedType === COMPANY_TYPES.SUBSIDIARY 
-                                      ? "No Holdings available" 
+                                    {selectedType === COMPANY_TYPES.SUBSIDIARY
+                                      ? "No Holdings available"
                                       : "No Subsidiaries available"}
                                   </SelectItem>
                                 ) : (
@@ -693,9 +696,9 @@ export function CompanyManagement() {
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          {isHolding 
-                            ? "Holdings are root entities with no parent" 
-                            : selectedType === COMPANY_TYPES.SUBSIDIARY 
+                          {isHolding
+                            ? "Holdings are root entities with no parent"
+                            : selectedType === COMPANY_TYPES.SUBSIDIARY
                               ? "Select the Holding company that owns this subsidiary"
                               : "Select the Subsidiary that owns this branch"}
                         </FormDescription>
@@ -710,8 +713,8 @@ export function CompanyManagement() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>3-Level Hierarchy Rules:</strong> Holding (Level 1) can have Subsidiaries. 
-                  Subsidiaries (Level 2) belong to a Holding and can have Branches. 
+                  <strong>3-Level Hierarchy Rules:</strong> Holding (Level 1) can have Subsidiaries.
+                  Subsidiaries (Level 2) belong to a Holding and can have Branches.
                   Branches (Level 3) belong to a Subsidiary and cannot have children.
                 </AlertDescription>
               </Alert>
@@ -724,10 +727,10 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Currency</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="USD" 
+                        <Input
+                          placeholder="USD"
                           maxLength={3}
-                          {...field} 
+                          {...field}
                           data-testid="input-currency"
                         />
                       </FormControl>
@@ -743,9 +746,9 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Tax ID</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="XX-XXXXXXX" 
-                          {...field} 
+                        <Input
+                          placeholder="XX-XXXXXXX"
+                          {...field}
                           data-testid="input-tax-id"
                         />
                       </FormControl>
@@ -761,9 +764,9 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Registration No.</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Business reg number" 
-                          {...field} 
+                        <Input
+                          placeholder="Business reg number"
+                          {...field}
                           data-testid="input-registration"
                         />
                       </FormControl>
@@ -780,10 +783,10 @@ export function CompanyManagement() {
                   <FormItem>
                     <FormLabel>Address</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Street address" 
+                      <Textarea
+                        placeholder="Street address"
                         className="resize-none"
-                        {...field} 
+                        {...field}
                         data-testid="input-address"
                       />
                     </FormControl>
@@ -800,9 +803,9 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>City</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="City" 
-                          {...field} 
+                        <Input
+                          placeholder="City"
+                          {...field}
                           data-testid="input-city"
                         />
                       </FormControl>
@@ -818,9 +821,9 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Country</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Country" 
-                          {...field} 
+                        <Input
+                          placeholder="Country"
+                          {...field}
                           data-testid="input-country"
                         />
                       </FormControl>
@@ -838,9 +841,9 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Phone</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="+1 (555) 000-0000" 
-                          {...field} 
+                        <Input
+                          placeholder="+1 (555) 000-0000"
+                          {...field}
                           data-testid="input-phone"
                         />
                       </FormControl>
@@ -856,10 +859,10 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           type="email"
-                          placeholder="info@company.com" 
-                          {...field} 
+                          placeholder="info@company.com"
+                          {...field}
                           data-testid="input-email"
                         />
                       </FormControl>
@@ -875,10 +878,10 @@ export function CompanyManagement() {
                     <FormItem>
                       <FormLabel>Website</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           type="url"
-                          placeholder="https://company.com" 
-                          {...field} 
+                          placeholder="https://company.com"
+                          {...field}
                           data-testid="input-website"
                         />
                       </FormControl>
@@ -889,16 +892,16 @@ export function CompanyManagement() {
               </div>
 
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setIsDialogOpen(false)}
                   data-testid="button-cancel"
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
                   data-testid="button-submit"
                 >
@@ -916,19 +919,19 @@ export function CompanyManagement() {
           <DialogHeader>
             <DialogTitle>Delete Company</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deleteConfirm?.name}"? 
+              Are you sure you want to delete "{deleteConfirm?.name}"?
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setDeleteConfirm(null)}
               data-testid="button-cancel-delete"
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               variant="destructive"
               onClick={() => deleteConfirm && deleteMutation.mutate(deleteConfirm.id)}
               disabled={deleteMutation.isPending}

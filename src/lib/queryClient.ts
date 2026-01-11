@@ -1,4 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { MOCK_MODE } from "./mockAuth";
+import { handleMockApiRequest, shouldMockUrl } from "./mockApiHandlers";
 
 const TOKEN_STORAGE_KEY = "unanza_access_token";
 
@@ -19,6 +21,20 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Wrap native fetch to intercept mock API calls
+const originalFetch = window.fetch;
+window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+
+  // Check if this should be mocked
+  if (MOCK_MODE && shouldMockUrl(url)) {
+    return handleMockApiRequest(url, init || {});
+  }
+
+  // Pass through to real fetch
+  return originalFetch(input, init);
+};
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -27,7 +43,7 @@ export async function apiRequest(
   const headers: Record<string, string> = {
     ...getAuthHeaders(),
   };
-  
+
   if (data) {
     headers["Content-Type"] = "application/json";
   }
@@ -48,24 +64,24 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey, meta }) => {
-    const headers: Record<string, string> = {
-      ...getAuthHeaders(),
-      ...(meta?.headers as Record<string, string> || {}),
+    async ({ queryKey, meta }) => {
+      const headers: Record<string, string> = {
+        ...getAuthHeaders(),
+        ...(meta?.headers as Record<string, string> || {}),
+      };
+
+      const res = await fetch(queryKey.join("/") as string, {
+        credentials: "include",
+        headers,
+      });
+
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      return await res.json();
     };
-    
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-      headers,
-    });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
-
-    await throwIfResNotOk(res);
-    return await res.json();
-  };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
